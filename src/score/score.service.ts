@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Score } from '@prisma/client';
+import { CreateScoreDTO } from './create.score.dto';
 
 @Injectable()
 export class ScoreService {
@@ -19,5 +20,16 @@ export class ScoreService {
 
     const score = Math.min(Math.max(totalScore._sum.score ?? 0, 0), 100);
     return score;
+  }
+
+  async createScore(dto: CreateScoreDTO): Promise<Score> {
+    return this.prisma.score.create({
+      data: { score: dto.score },
+    });
+  }
+
+  async deleteAllScore(): Promise<null> {
+    await this.prisma.score.deleteMany();
+    return null;
   }
 }
