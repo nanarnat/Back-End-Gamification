@@ -18,7 +18,7 @@ export class ScoreService {
       },
     });
 
-    const score = Math.min(Math.max(totalScore._sum.score ?? 0, 0), 100);
+    const score = Math.min(Math.max(totalScore._sum.score ?? 0, 0), 10000);
     return score;
   }
 

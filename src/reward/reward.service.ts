@@ -6,9 +6,9 @@ import { ScoreService } from '../score/score.service';
 @Injectable()
 export class RewardService {
   private readonly rewardRules = [
-    { rewardType: 'A', requiredScore: 5000 },
-    { rewardType: 'B', requiredScore: 10000 },
-    { rewardType: 'C', requiredScore: 15000 },
+    { type: 'A', requiredScore: 5000 },
+    { type: 'B', requiredScore: 7500 },
+    { type: 'C', requiredScore: 10000 },
   ];
 
   constructor(
@@ -25,9 +25,22 @@ export class RewardService {
     return null;
   }
 
-  //     async createReward(): Promise<Reward> {
-  //     const score = await this.scoreService.getTotalScore();
+  async createReward() {
+    const score = await this.scoreService.getTotalScore();
 
-  //     const existingReward = await this.getReward();
-  //   }
+    const existingRewards = await this.getReward();
+    const existingTypes = new Set(existingRewards.map((r) => r.reward));
+
+    const rewardData = this.rewardRules
+      .filter((e) => score >= e.requiredScore && !existingTypes.has(e.type))
+      .map((e) => ({ reward: e.type }));
+
+    if (rewardData.length === 0) return [];
+
+    await this.prisma.reward.createMany({
+      data: rewardData,
+    });
+
+    return rewardData;
+  }
 }

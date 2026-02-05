@@ -5,5 +5,6 @@ import { ScoreService } from './score.service';
 @Module({
   controllers: [ScoreController],
   providers: [ScoreService],
+  exports: [ScoreService],
 })
 export class ScoreModule {}
