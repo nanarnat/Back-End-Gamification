@@ -9,7 +9,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      'https://front-end-gamification.vercel.app',
+      'https://front-end-gamification-kynk.vercel.app/',
     ],
   });
 
