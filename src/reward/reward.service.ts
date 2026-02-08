@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Reward } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { ScoreService } from '../score/score.service';
+import { CreateRewardDTO, RewardValue } from './create.reward.dto';
 
 @Injectable()
 export class RewardService {
   private readonly rewardRules = [
-    { type: 'A', requiredScore: 5000 },
-    { type: 'B', requiredScore: 7500 },
-    { type: 'C', requiredScore: 10000 },
+    { type: RewardValue.A, requiredScore: 5000 },
+    { type: RewardValue.B, requiredScore: 7500 },
+    { type: RewardValue.C, requiredScore: 10000 },
   ];
 
   constructor(
@@ -25,20 +26,26 @@ export class RewardService {
     return null;
   }
 
-  async createReward() {
+  async createReward(dto: CreateRewardDTO) {
     const score = await this.scoreService.getTotalScore();
 
-    const existingRewards = await this.getReward();
-    const existingTypes = new Set(existingRewards.map((r) => r.reward));
+    const rule = this.rewardRules.find((r) => r.type === dto.reward);
+    if (!rule) throw new BadRequestException('Invalid reward type');
 
-    const rewardData = this.rewardRules
-      .filter((e) => score >= e.requiredScore && !existingTypes.has(e.type))
-      .map((e) => ({ reward: e.type }));
+    if (score < rule.requiredScore) {
+      throw new BadRequestException('Not enough score');
+    }
 
-    if (rewardData.length === 0) return [];
+    const existingReward = await this.prisma.reward.findFirst({
+      where: { reward: dto.reward },
+    });
 
-    await this.prisma.reward.createMany({
-      data: rewardData,
+    if (existingReward) {
+      throw new BadRequestException('Already claim this reward');
+    }
+
+    const rewardData = await this.prisma.reward.createMany({
+      data: { reward: dto.reward },
     });
 
     return rewardData;
